@@ -1,3 +1,0 @@
-tasks:
-  - command: go get github.com/neo4j/neo4j-go-driver/neo4j
-    description: Install Neo4j Go driver
