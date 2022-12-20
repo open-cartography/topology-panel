@@ -8,7 +8,5 @@ ports:
 tasks:
   - command: go get github.com/neo4j/neo4j-go-driver/neo4j
     description: Install Neo4j Go driver
-
-.gitpod.Dockerfile: |
-  FROM gitpod/workspace-full
-  RUN go get github.com/neo4j/neo4j-go-driver/neo4j
+  - command: go run main.go
+    description: Run Go program
