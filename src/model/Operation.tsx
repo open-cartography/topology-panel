@@ -1,4 +1,4 @@
-import {round2} from "../components/SimplePanel";
+import {round2} from "../components/TopologyPanel";
 
 export class Operation {
     name: any;

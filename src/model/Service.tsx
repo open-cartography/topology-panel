@@ -1,4 +1,4 @@
-import {round2} from "../components/SimplePanel";
+import {round2} from "../components/TopologyPanel";
 import {place_left2right} from "../components/layout";
 import {DataFrame} from "@grafana/data";
 import {createDonutChart} from "../components/donut";

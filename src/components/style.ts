@@ -121,7 +121,7 @@ function service_node_attached_label_edges() {
     return {
         selector: '.label-edge',
         style: {
-            "curve-style": "haystack",//options: segments, bezier, unbundled-bezier, segments, haystack straight - the default curve
+            "curve-style": "straight",//options: segments, bezier, unbundled-bezier, segments, haystack straight - the default curve
             "segment-distances": "-20 20 -20",
             "segment-weights": "0.75",
             "edge-distances ": "node-position",

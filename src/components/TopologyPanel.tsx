@@ -9,7 +9,7 @@ import cola from 'cytoscape-cola';
 import 'tippy.js/dist/tippy.css';
 import popper from 'cytoscape-popper';
 
-import {colaOptions, layoutOptions, read_file_constraints} from "./layout";
+import {colaOptions} from "./layout";
 import {cyStyle} from "./style";
 
 
@@ -55,7 +55,7 @@ export function round2(value) {
 
 
 
-export class SimplePanel extends PureComponent<PanelProps, PanelState> {
+export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
     ref: any;
     cy: any | undefined;
     cyVisible: cytoscape.Core | undefined;
@@ -177,21 +177,21 @@ export class SimplePanel extends PureComponent<PanelProps, PanelState> {
 
         this.setServiceNodes();
         this.setService2ServiceEdges();
-        read_file_constraints();
-        //this.setOperationNodes();
-
-        let layout = this.cy.layout({
-            ...layoutOptions,
-
-            stop: () => {
-
-                //this.instance.collapseNodes(this.cy.nodes('[id="cartservice-compound"]'));
-                this.instance.collapseNodes(this.cy.nodes('[id="featureflagservice-compound"]'));
-                this.instance.collapseNodes(this.cy.nodes('[id="frontend-proxy-compound"]'));
-
-            }
-        });
-        layout.run();
+        // read_file_constraints();
+        // //this.setOperationNodes();
+        //
+        // let layout = this.cy.layout({
+        //     ...layoutOptions,
+        //
+        //     stop: () => {
+        //
+        //         //this.instance.collapseNodes(this.cy.nodes('[id="cartservice-compound"]'));
+        //         // this.instance.collapseNodes(this.cy.nodes('[id="featureflagservice-compound"]'));
+        //         // this.instance.collapseNodes(this.cy.nodes('[id="frontend-proxy-compound"]'));
+        //
+        //     }
+        // });
+        // layout.run();
 
 
     }
@@ -199,8 +199,8 @@ export class SimplePanel extends PureComponent<PanelProps, PanelState> {
 
     private updateGraph() {
         console.log("updateGraph");
-        this.cy.resize();
-        this.cy.fit();
+        // this.cy.resize();
+        // this.cy.fit();
         let layout = this.cy.layout({...colaOptions});
         layout.run();
         // layoutOptions.randomize = false;

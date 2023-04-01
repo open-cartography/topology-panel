@@ -1,11 +1,11 @@
 import tippy, {Instance, Props} from "tippy.js";
 import {getTraceOnNode} from "./Trace";
-import {SimplePanel} from "./SimplePanel";
+import {TopologyPanel} from "./TopologyPanel";
 
 export class Tippies {
-    panel: SimplePanel | undefined;
+    panel: TopologyPanel | undefined;
 
-    constructor(panel: SimplePanel) {
+    constructor(panel: TopologyPanel) {
         this.panel = panel;
     }
 
@@ -97,7 +97,7 @@ export class Tippies {
         });
     }
 
-    attachTrace(tip: Instance<Props>, node: any, panel: SimplePanel | undefined) {
+    attachTrace(tip: Instance<Props>, node: any, panel: TopologyPanel | undefined) {
         tip.popper.querySelector('#trace').addEventListener('click', () => {
             const traceTippy = tippy(tip.popper, {
                 appendTo: 'parent',
