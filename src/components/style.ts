@@ -158,7 +158,7 @@ function service_node_attached_label_nodes() {
 
             "width": function (ele) {
                 // according to label text length
-                return ele.data("label").length * 10;
+                return ele.data("label").length * 12;
             },
             "height": function (ele) {
                 return fontSize(nodeSize(ele));
@@ -360,10 +360,7 @@ function default_for_edges() {
             "mid-target-arrow-shape": "vee", // options:
             "arrow-scale": 0.3,
             "mid-target-arrow-color": "white",
-            //"target-arrow-shape": "none",
-            "target-arrow-shape": "vee",
-            "target-arrow-color": 'white',
-            "target-arrow-scale": 0.3,
+            "target-arrow-shape": "none",
 
         }
     };
@@ -376,7 +373,7 @@ function service2service_edges() {
             "line-color": colors['SERVICE_HIGHWAY'],
             "opacity": 0.6,
             "curve-style": "straight",//options: segments, bezier, unbundled-bezier, segments, haystack straight - the default curve
-            "line-cap": "round",
+            "line-cap": "square",// options: butt, round, square
         }
     };
 }
@@ -426,8 +423,8 @@ function hub2hub_compound_edges() {
             },
             "opacity": 0.6,
             "curve-style": "straight",//options: segments, bezier, unbundled-bezier, segments, haystack straight - the default curve
-            "source-endpoint": "outside-to-line",
-            "target-endpoint": "outside-to-line",
+            // "source-endpoint": "outside-to-line",
+            // "target-endpoint": "outside-to-line",
             "line-cap": "square",// options: butt, round, square
         }
     };

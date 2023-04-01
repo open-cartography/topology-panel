@@ -178,7 +178,7 @@ export class SimplePanel extends PureComponent<PanelProps, PanelState> {
         this.setServiceNodes();
         this.setService2ServiceEdges();
         read_file_constraints();
-        this.setOperationNodes();
+        //this.setOperationNodes();
 
         let layout = this.cy.layout({
             ...layoutOptions,
@@ -188,18 +188,6 @@ export class SimplePanel extends PureComponent<PanelProps, PanelState> {
                 //this.instance.collapseNodes(this.cy.nodes('[id="cartservice-compound"]'));
                 this.instance.collapseNodes(this.cy.nodes('[id="featureflagservice-compound"]'));
                 this.instance.collapseNodes(this.cy.nodes('[id="frontend-proxy-compound"]'));
-                // find servic-edge classes in cy
-
-                // this.cy.elements('.service-edge').forEach((edge: any) => {
-                //     console.log("edge", edge.data());
-                //     let halign = [];
-                //     edge.connectedNodes().forEach((node: any) => {
-                //         console.log("node", node.data());
-                //         halign.push(node.id);
-                //     } );
-                //     align_horizontal(halign);
-                // });
-
 
             }
         });

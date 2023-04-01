@@ -57,7 +57,7 @@ export class Service {
                 id: this.id + "-label",
                 label: this.name,
                 type: "label-node",
-                parent: this.id + "-compound",
+                //parent: this.id + "-compound",
                 service: this.id,
                 weight: this.weight
             }
@@ -65,7 +65,7 @@ export class Service {
 
 
         // connect to service node
-        let connectedNodes = cy.add({
+        cy.add({
             data: {
                 id: this.id + "-label-edge",
                 label: "",
@@ -77,8 +77,7 @@ export class Service {
             }
         }).addClass("label-edge").connectedNodes();
 
-        // add automove to connected nodes
-        console.log("auto-move=", connectedNodes);
+
         cy.automove({
             nodesMatching: label_node,
             reposition: 'drag',
@@ -93,13 +92,13 @@ export class Service {
                 // get the span_kind
                 let span_kind = serie.fields[1].labels.span_kind;
                 console.log("-->spanmetrics_calls_total_span_kind query returned", serie, "span_kind=", span_kind);
-                this.addHubNode(serie, direction(span_kind));
+                this.add_hub_node(serie, direction(span_kind));
             });
 
 
     }
 
-    addHubNode(serie, direction: string) {
+    add_hub_node(serie, direction: string) {
 
         // find the related serie in this.props.data.series.filter((queryResults: any) => queryResults.refId === "spanmetrics_calls_total_span_kind") if exists and get value as weight
         // if not exists set weight to 0 {service_name="frontend", span_kind="SPAN_KIND_INTERNAL"}
@@ -109,10 +108,8 @@ export class Service {
             return;
         }
         let weight = round2(serie.fields[1].values.buffer[0]);
+        console.log("add_hub_node", direction, "weight=", weight, "this.id=", this.id);
 
-        // if (weight === 0) {
-        //     return;
-        // }
         // hub compound
         this.cy.add({
             data: {
@@ -176,7 +173,7 @@ export class Service {
             }
         }).addClass("service2hubs_edges");
 
-        console.log("4- addHubNode", direction, "weight=", weight, "this.id=", this.id);
+        console.log("4- add_hub_node", direction, "weight=", weight, "this.id=", this.id);
         // add edge from hub to hub-compound
         this.cy.add({
             data: {
