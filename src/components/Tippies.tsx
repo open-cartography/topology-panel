@@ -64,7 +64,7 @@ export class Tippies {
         return tip;
     }
 
-    makeNodeTippy(ele, props) {
+    makeNodeTippy(ele) {
         const {cardId, cardDetails} = this.createContent(
             ele,
             'id',

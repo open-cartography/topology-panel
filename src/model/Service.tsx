@@ -1,7 +1,7 @@
 import {round2} from "../components/TopologyPanel";
-import {place_left2right} from "../components/layout";
 import {DataFrame} from "@grafana/data";
-import {createDonutChart} from "../components/donut";
+import { create_donut_gauge} from "../components/donut";
+import {colors} from "../components/colors";
 
 function direction(span_kind: any) {
     if (span_kind === "SPAN_KIND_SERVER") {
@@ -41,8 +41,8 @@ export class Service {
 
     }
 
-    add_service_nodes(cy: any) {
-        let service_node = cy.add({
+    add_service_node(cy: any) {
+        cy.add({
             data: {
                 id: this.id,
                 label: this.weight.toString(),
@@ -51,39 +51,9 @@ export class Service {
                 weight: this.weight
             }
         }).addClass("service-node");
-        // and add a service label node attached to the service node connected just to show service name
-        let label_node = cy.add({
-            data: {
-                id: this.id + "-label",
-                label: this.name,
-                type: "label-node",
-                //parent: this.id + "-compound",
-                service: this.id,
-                weight: this.weight
-            }
-        }).addClass("label-node");
 
-
-        // connect to service node
-        cy.add({
-            data: {
-                id: this.id + "-label-edge",
-                label: "",
-                source: this.id + "-label",
-                target: this.id,
-                service: this.id,
-                parent: this.id + "-compound",
-                weight: this.weight
-            }
-        }).addClass("label-edge").connectedNodes();
-
-
-        cy.automove({
-            nodesMatching: label_node,
-            reposition: 'drag',
-            dragWith: service_node
-        });
     }
+
 
     add_hub_nodes() {
         this.data_series.filter((queryResults: any) => queryResults.refId === "spanmetrics_calls_total_span_kind"
@@ -91,7 +61,7 @@ export class Service {
             .forEach((serie: any) => {
                 // get the span_kind
                 let span_kind = serie.fields[1].labels.span_kind;
-                console.log("-->spanmetrics_calls_total_span_kind query returned", serie, "span_kind=", span_kind);
+                //console.log("-->spanmetrics_calls_total_span_kind query returned", serie, "span_kind=", span_kind);
                 this.add_hub_node(serie, direction(span_kind));
             });
 
@@ -104,22 +74,11 @@ export class Service {
         // if not exists set weight to 0 {service_name="frontend", span_kind="SPAN_KIND_INTERNAL"}
 
         if (serie.length !== 1) {
-            console.log("spanmetrics_calls_total_span_kind query returned " + serie.length + " result=", serie);
+            //console.log("spanmetrics_calls_total_span_kind query returned " + serie.length + " result=", serie);
             return;
         }
         let weight = round2(serie.fields[1].values.buffer[0]);
-        console.log("add_hub_node", direction, "weight=", weight, "this.id=", this.id);
 
-        // hub compound
-        this.cy.add({
-            data: {
-                id: this.id + "-compound-" + direction,
-                label: direction,
-                parent: this.id + "-compound",
-                weight: weight,
-                service: this.id,
-            }
-        }).addClass("hub-compound");
         // hub node
         this.cy.add({
             data: {
@@ -131,66 +90,21 @@ export class Service {
             }
         }).addClass("hub-node");
 
-        this.cy.add({
-            data: {
-                id: this.id + "-" + direction + "-hub-label",
-                label: direction,
-                parent: this.id + "-compound",
-                service: this.id,
-                weight: this.weight
-            }
-        }).addClass("label-node");
-        let connectedNodes = this.cy.add({
-            data: {
-                id: this.id + "-" + direction + "-label-edge",
-                label: "",
-                source: this.id + "-" + direction + "-hub-label",
-                target: this.id + "-" + direction,
-                service: this.id,
-                parent: this.id + "-compound",
-                weight: this.weight
-            }
-        }).addClass("label-edge").connectedNodes();
-
-        // add automove to connected nodes
-        console.log("auto-move=", connectedNodes);
-        this.cy.automove({
-            nodesMatching: connectedNodes,
-            reposition: 'drag',
-            dragWith: connectedNodes
-        });
 
         //connect to service node
         this.cy.add({
             data: {
                 id: this.id + "-" + direction + "-edge",
                 label: "",
-                source: direction === "in" ? this.id + "-compound-" + direction : this.id,
-                target: direction === "in" ? this.id : this.id + "-compound-" + direction,
+                source: direction === "in" ? this.id + "-" + direction : this.id,
+                target: direction === "in" ? this.id : this.id + "-" + direction,
                 service: this.id,
                 parent: this.id + "-compound",
 
             }
         }).addClass("service2hubs_edges");
 
-        console.log("4- add_hub_node", direction, "weight=", weight, "this.id=", this.id);
-        // add edge from hub to hub-compound
-        this.cy.add({
-            data: {
-                id: this.id + "-" + direction + "-edgy",
-                label: "",
-                source: direction === "in" ? this.id + "-" + direction : this.id + "-compound-" + direction,
-                target: direction === "in" ? this.id + "-compound-" + direction : this.id + "-" + direction,
-                service: this.id,
-                parent: this.id + "-compound",
-            }
-        }).addClass("hub2hub_compound_edges");
 
-        if (direction === "in") {
-            place_left2right(this.id + "-" + direction, this.id);// left right
-        } else if (direction === "out") {
-            place_left2right(this.id, this.id + "-" + direction);// left right
-        }
 
     }
 
@@ -199,11 +113,43 @@ export class Service {
     }
 
     add_donut() {
-        const imageUrl = createDonutChart(this);
+        const imageUrl = create_donut_gauge(this);
         const backgroundImage = `url(${imageUrl})`;
         const node = this.cy.getElementById(this.id);
         node.style('background-image', backgroundImage);
 
+    }
+
+    add_name_tippy() {
+        let node = this.cy.getElementById(this.id);
+        console.log("add_name_tippy", node)
+        this.attachTippy(node);
+
+
+    }
+
+    private attachTippy(node) {
+        let popper = node.popper({
+            content: () => {
+                let div = document.createElement('div');
+                let name = node.data('id');
+                // name background color[service] font white rounded rectangle
+                div.innerHTML = `<div class="name-tippy" style="background-color: ${colors[name]}; color: white; padding: 4px 8px; border-radius: 8px;">${name}</div>`;
+
+
+                document.body.appendChild(div);
+
+                return div;
+            }
+        });
+
+        let update = () => {
+            popper.update();
+        };
+
+        node.on('position', update);
+
+        this.cy.on('pan zoom resize', update);
     }
 }
 

@@ -9,7 +9,6 @@ import cola from 'cytoscape-cola';
 import 'tippy.js/dist/tippy.css';
 import popper from 'cytoscape-popper';
 
-import {colaOptions} from "./layout";
 import {cyStyle} from "./style";
 
 
@@ -25,6 +24,9 @@ import klay from 'cytoscape-klay';
 import {Edge} from 'model/Edge';
 import {Service} from 'model/Service';
 import {Operation} from "../model/Operation";
+import {colaOptions} from "./cola_options";
+import {klay_options} from "./klay_options";
+import {layoutOptions} from "./layout";
 
 cytoscape.use(klay);
 cytoscape.use(dagre);
@@ -160,8 +162,11 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
             instance: this.instance,
         });
         this.cy.ready(() => {
-            this.initGraph();
+
+            this.init_graph();
+
         });
+            this.cy.layout({...layoutOptions}).run();
 
         this.tippies = new Tippies(this);
 
@@ -173,25 +178,15 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
     }
 
 
-    private initGraph() {
-
-        this.setServiceNodes();
-        this.setService2ServiceEdges();
+    private init_graph() {
+        let level = 0;
+            this.add_service_nodes();
+            this.add_service2service_edges();
+        if (level>0) {
         // read_file_constraints();
-        // //this.setOperationNodes();
-        //
-        // let layout = this.cy.layout({
-        //     ...layoutOptions,
-        //
-        //     stop: () => {
-        //
-        //         //this.instance.collapseNodes(this.cy.nodes('[id="cartservice-compound"]'));
-        //         // this.instance.collapseNodes(this.cy.nodes('[id="featureflagservice-compound"]'));
-        //         // this.instance.collapseNodes(this.cy.nodes('[id="frontend-proxy-compound"]'));
-        //
-        //     }
-        // });
-        // layout.run();
+            this.setOperationNodes();
+        }
+
 
 
     }
@@ -199,19 +194,42 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
 
     private updateGraph() {
         console.log("updateGraph");
-        // this.cy.resize();
-        // this.cy.fit();
+        this.cy.resize();
+        this.cy.fit();
         let layout = this.cy.layout({...colaOptions});
         layout.run();
         // layoutOptions.randomize = false;
         // this.cy.layout({...layoutOptions}).run();
+        // this.cy.layout( klay_options ).run();
 
 
 
     }
+    private getServiceNameTotals = (series) => {
+        const serviceNameTotals = {};
 
-    private setServiceNodes() {
+        series.forEach((s) => {
+
+            const serviceName = s.fields[1].labels.service_name;
+            let sum = s.fields[1].values.toArray().reduce((a, b) => a + b, 0);
+            sum=round2(sum);
+            if (serviceNameTotals[serviceName]) {
+                serviceNameTotals[serviceName] += sum;
+            } else {
+                serviceNameTotals[serviceName] = sum;
+            }
+            serviceNameTotals[serviceName]= round2(serviceNameTotals[serviceName]);
+        });
+
+        return serviceNameTotals;
+    };
+    private add_service_nodes() {
         const {data} = this.props;
+
+        // TODO: get rid of one of the two series: service_calls_total to be replaced by spanmetrics_calls_total
+        let spanmetrics_calls_total = data.series.filter((services: any) => services.refId === "spanmetrics_calls_total");
+        let serviceNameTotals = this.getServiceNameTotals(spanmetrics_calls_total);
+        console.log("console.log(serviceNameTotals)",serviceNameTotals);
         // get series with refId ServiceGraphEdges
         data.series.filter((services: any) => services.refId === "service_calls_total").forEach((serie: any) => {
 
@@ -220,8 +238,9 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
             service.cy = this.cy;
             service.set_series(data.series);
             service.add_service_compound(this.cy);
-            service.add_service_nodes(this.cy);
+            service.add_service_node(this.cy);
             service.add_donut();
+            service.add_name_tippy();
             service.add_hub_nodes();
 
 
@@ -232,7 +251,7 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
     }
 
 
-    private setService2ServiceEdges() {
+    private add_service2service_edges() {
         const {data} = this.props;
         // get series with refId ServiceGraphEdges
         data.series.filter((series: any) => series.refId === "service_graph_request_total").forEach((serie: any) => {
@@ -262,6 +281,7 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
 
             }
 
+            // ERROR values
             data.series.filter((series: any) => series.refId === "traces_service_graph_request_failed_total").forEach((serie: any) => {
                 // if serie is undefined return
                 if (serie === undefined) {
@@ -447,30 +467,7 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
                 weight: 0,
             }
         }).addClass('node-operation');
-        // let source;
-        // let target;
-        // if (operation.spanKind === "CLIENT") {
-        //     source = operation.id;
-        //     target = operation.service + "-out";
-        // } else if (operation.spanKind === "SERVER") {
-        //     source = operation.service + "-in";
-        //     target = operation.id;
-        // } else {
-        //     // still create edge , but do not connect to in/out
-        //     source = operation.service + "-internal";
-        //     target = operation.id;
-        // }
-        // this.cy.add({
-        //     data: {
-        //         id: "edge-" + operation.id,
-        //         label: "",
-        //         edgeType: "operation",
-        //         source: source,
-        //         target: target,
-        //         weight: operation.weight,
-        //     }
-        //
-        // });
+
     }
 
 

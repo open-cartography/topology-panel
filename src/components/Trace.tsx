@@ -1,7 +1,7 @@
 import {FetchResponse, getBackendSrv} from "@grafana/runtime";
-import {colaOptions} from "./layout";
 import {Edge} from "../model/Edge";
 import {colors} from "./colors";
+import {colaOptions} from "./cola_options";
 
 export function getTraceOnNode(operationSpanStatusNode: any, panel: any) {
     let service = operationSpanStatusNode.service;

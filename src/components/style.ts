@@ -127,7 +127,7 @@ function service_node_attached_label_edges() {
             "edge-distances ": "node-position",
             "width": function (ele) {
                 // find target node edge connected to,
-                return edgeWidth(ele) / 5;
+                return edgeWidth(ele) / 6;
             },
             // no arrow
             "target-arrow-shape": "none",
@@ -219,7 +219,7 @@ function hub_nodes() {
         selector: '.hub-node',
         style: {
             "border-color": function (ele) {
-                return colors['gray'];
+                return colorService(ele);
             },
             "border-width": function (ele) {
                 return nodeSize(ele) / 5;
