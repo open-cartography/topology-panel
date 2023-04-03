@@ -2,6 +2,8 @@ import {round2} from "../components/TopologyPanel";
 import {DataFrame} from "@grafana/data";
 import { create_donut_gauge} from "../components/donut";
 import {colors} from "../components/colors";
+import {createSVGDonutGauge, createSVGDonutGaugeDataURL, createSVGDonutGaugeDataURL2} from "../components/D3DonutGauge";
+import {scaledSize} from "../components/style";
 
 function direction(span_kind: any) {
     if (span_kind === "SPAN_KIND_SERVER") {
@@ -21,19 +23,25 @@ export class Service {
     data_series: DataFrame[];
     cy: any;
 
-    constructor(serie: any) {
-        this.name = serie.fields[1].labels.service_name;
-        this.id = this.name;
-        this.weight = round2(serie.fields[1].values.get(0));
+    // constructor(serie: any) {
+    //     this.name = serie.fields[1].labels.service_name;
+    //     this.id = this.name;
+    //     this.weight = round2(serie.fields[1].values.get(0));
+    // }
+    constructor(service_name: any, weight: any) {
+        this.name = service_name;
+        this.id = service_name;
+        this.weight = weight;
+
     }
 
-    add_service_compound(cy: any) {
-        return cy.add({
+
+    add_service_compound() {
+        return this.cy.add({
             data: {
                 id: this.id + "-compound",
                 label: this.name,
                 service: this.id,
-                nodeType: "service-compound",
                 weight: this.weight
             }
         }).addClass("service-compound");
@@ -41,12 +49,11 @@ export class Service {
 
     }
 
-    add_service_node(cy: any) {
-        cy.add({
+    add_service_node() {
+        this.cy.add({
             data: {
                 id: this.id,
                 label: this.weight.toString(),
-                nodeType: "service",
                 parent: this.id + "-compound",
                 weight: this.weight
             }
@@ -113,7 +120,8 @@ export class Service {
     }
 
     add_donut() {
-        const imageUrl = create_donut_gauge(this);
+        const imageUrl = createSVGDonutGaugeDataURL(this,scaledSize(this.weight));
+        //const imageUrl = create_donut_gauge(this);
         const backgroundImage = `url(${imageUrl})`;
         const node = this.cy.getElementById(this.id);
         node.style('background-image', backgroundImage);
@@ -150,6 +158,9 @@ export class Service {
         node.on('position', update);
 
         this.cy.on('pan zoom resize', update);
+
+        // TODO: tippies not destroyed on panel edit, full refresh or dashboard change and sizes calculated according to node size best in style.ts or style.css
+
     }
 }
 

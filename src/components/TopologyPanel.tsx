@@ -11,7 +11,7 @@ import popper from 'cytoscape-popper';
 
 import {cyStyle} from "./style";
 
-
+import { hideAll } from 'tippy.js';
 // @ts-ignore
 import complexityManagement from "cytoscape-complexity-management";
 import {Tippies} from "./Tippies";
@@ -65,6 +65,7 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
     instance: any | undefined;
     tippies: any | undefined;
     cxtmenu: any;
+    level: number|undefined;
 
 
     constructor(props: PanelProps) {
@@ -136,6 +137,7 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
 
     componentDidMount() {
 
+        this.level= 0;
         this.cyVisible = cytoscape({
             container: document.getElementById('cyVisible'),
         } as any);
@@ -179,10 +181,15 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
 
 
     private init_graph() {
-        let level = 0;
+        console.log("init_graph level ",this.level);
+        if (this.level===0) {
             this.add_service_nodes();
-            this.add_service2service_edges();
-        if (level>0) {
+            this.level = 0.1;
+            //this.add_service2service_edges();
+            console.log("init_graph level 1");
+            this.level = 1;
+        }
+        if (this.level>2) {
         // read_file_constraints();
             this.setOperationNodes();
         }
@@ -230,21 +237,36 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
         let spanmetrics_calls_total = data.series.filter((services: any) => services.refId === "spanmetrics_calls_total");
         let serviceNameTotals = this.getServiceNameTotals(spanmetrics_calls_total);
         console.log("console.log(serviceNameTotals)",serviceNameTotals);
-        // get series with refId ServiceGraphEdges
-        data.series.filter((services: any) => services.refId === "service_calls_total").forEach((serie: any) => {
-
+        // iterate over serviceNameTotals
+        for (let serviceName in serviceNameTotals) {
+            // log service name and total
+            console.log("serviceName",serviceName,serviceNameTotals[serviceName]);
+            // filter for service name the service_calls_total into a serie(s) and set_series in Service object
             let service: Service;
-            service = new Service(serie);
-            service.cy = this.cy;
+            service = new Service(serviceName,serviceNameTotals[serviceName]);
             service.set_series(data.series);
-            service.add_service_compound(this.cy);
-            service.add_service_node(this.cy);
-            service.add_donut();
+            service.cy = this.cy;
+            service.add_service_compound();
+            service.add_service_node();
             service.add_name_tippy();
-            service.add_hub_nodes();
+            service.add_donut();
+        }
 
-
-        });
+        // // get series with refId ServiceGraphEdges
+        // data.series.filter((services: any) => services.refId === "service_calls_total").forEach((serie: any) => {
+        //
+        //     let service: Service;
+        //     service = new Service(serie);
+        //     service.cy = this.cy;
+        //     service.set_series(data.series);
+        //     service.add_service_compound(this.cy);
+        //     service.add_service_node(this.cy);
+        //     service.add_donut();
+        //     service.add_name_tippy();
+        //     service.add_hub_nodes();
+        //
+        //
+        // });
 
 
         // TODO: listen to changes in the Services variable combobox and update the graph accordingly

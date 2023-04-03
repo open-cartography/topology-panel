@@ -12,7 +12,7 @@ export const cyStyle = [
     service_compound_nodes(),
     service_nodes(),
     service_node_attached_label_edges(),
-    service_node_attached_label_nodes(),
+    service_node_attached_label_tippy(),
     service2service_edges(),// SERVICE_HIGHWAY
     service2hubs_edges(),
     hub_nodes(),
@@ -95,14 +95,14 @@ function default_for_nodes() {
             "background-color": "white",
             "border-color": "black",
             "font-size": function (ele) {
-                return fontSize(nodeSize(ele));
+                return fontSize(nodeSize(ele))*0.7;
             },
             "color": "black", // default color
             "background-opacity": 0.8,
             "text-wrap": "ellipsis",
             "label": "data(label)",
             "border-width": function (ele) {
-                return nodeSize(ele) / 4;
+                return nodeSize(ele) / 6;
             },
             "border-opacity": 0.5,
             "width": function (ele) {
@@ -140,7 +140,7 @@ function service_node_attached_label_edges() {
     };
 }
 
-function service_node_attached_label_nodes() {
+function service_node_attached_label_tippy() {
     return { // node type label rectangle with invisible border and invisible/transparent background
         // font with same compound color size according to node size
         selector: '.label-node',
@@ -164,7 +164,7 @@ function service_node_attached_label_nodes() {
                 return fontSize(nodeSize(ele));
             },
             "font-size": function (ele) {
-                return fontSize(nodeSize(ele)) * 0.8;
+                return fontSize(nodeSize(ele)) * 0.9;
             },
 
             "text-valign": "center",
@@ -176,7 +176,7 @@ function service_node_attached_label_nodes() {
 
 function service_nodes() {
     return {
-        selector: 'node[nodeType = "service"]',
+        selector: '.service-node',
         style: {
             "background-color": "white",
             "border-color": function (ele) {
@@ -286,7 +286,7 @@ function operation_compound_nodes() {
 
 function service_compound_nodes() {
     return {
-        selector: 'node[nodeType = "service-compound"]',
+        selector: '.service-compound',
         style: {
             // make label invisible
             "label": "",
@@ -575,15 +575,10 @@ function traditional_trace_path() {
 function fontSize(size) {
     return size * 0.33;
 }
-export const nodeSize = function (ele) {
-    let weight = 0.1;
+
+export function scaledSize(weight: number) {
     const baseSize = 60;
     const scaleExponent = 2;
-
-    if (ele.data("weight")) {
-        weight = ele.data("weight");
-    }
-
     // Create a custom logarithmic scale function
     const logScale = (value, minValue, maxValue, minResult, maxResult) => {
         const logMinValue = Math.log(minValue);
@@ -599,6 +594,16 @@ export const nodeSize = function (ele) {
         return baseSize;
     }
     return baseSize * scaledWeight;
+}
+
+export const nodeSize = function (ele) {
+    let weight = 0.1;
+
+
+    if (ele.data("weight")) {
+        weight = ele.data("weight");
+    }
+    return scaledSize(weight);
 };
 
 
