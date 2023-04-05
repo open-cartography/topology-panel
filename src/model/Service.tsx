@@ -120,8 +120,9 @@ export class Service {
     }
 
     add_donut() {
+        //TODO: extract error sum and construct donut accordingly
+
         const imageUrl = createSVGDonutGaugeDataURL(this,scaledSize(this.weight));
-        //const imageUrl = create_donut_gauge(this);
         const backgroundImage = `url(${imageUrl})`;
         const node = this.cy.getElementById(this.id);
         node.style('background-image', backgroundImage);
