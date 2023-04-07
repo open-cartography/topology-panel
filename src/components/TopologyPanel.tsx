@@ -27,7 +27,10 @@ import {Operation} from "../model/Operation";
 import {colaOptions} from "./cola_options";
 import {klay_options} from "./klay_options";
 import {layoutOptions} from "./layout";
+import edgeEditing from 'cytoscape-edge-editing';
 
+
+cytoscape.use(edgeEditing);
 cytoscape.use(klay);
 cytoscape.use(dagre);
 cytoscape.use(automove);
@@ -185,7 +188,7 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
         if (this.level===0) {
             this.add_service_nodes();
             this.level = 0.1;
-            //this.add_service2service_edges();
+            this.add_service2service_edges();
             console.log("init_graph level 1");
             this.level = 1;
         }
@@ -203,7 +206,9 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
         console.log("updateGraph");
         this.cy.resize();
         this.cy.fit();
-        let layout = this.cy.layout({...colaOptions});
+        let layout = this.cy.layout(
+                 {...colaOptions}
+        );
         layout.run();
         // layoutOptions.randomize = false;
         // this.cy.layout({...layoutOptions}).run();
@@ -275,10 +280,12 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
 
     private add_service2service_edges() {
         const {data} = this.props;
+        console.log("add_service2service_edges");
         // get series with refId ServiceGraphEdges
         data.series.filter((series: any) => series.refId === "service_graph_request_total").forEach((serie: any) => {
             // if serie is undefined return
             if (serie === undefined) {
+                console.log("serie undefined");
                 return;
             }
 
@@ -286,13 +293,13 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
             for (let i = 1; i < edgesLength; i++) {
                 // use Edge class to create an edge
                 let edge: Edge;
-                edge = Edge.create(serie.fields[i]);
+                edge = Edge.create(serie.fields[i],this);
                 edge.id = 'service-' + edge.source + '-' + edge.target;
                 edge.type = 'service';
                 edge.failed_weight = 0;
                 // if edge is undefined create it
                 if (this.cy.getElementById(edge.id).length === 0) {
-                    this.addServiceEdge(edge);
+                    edge.connect_service2service();
 
                 } else {
                     // if edge exists update the weight and label
@@ -304,63 +311,47 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
             }
 
             // ERROR values
-            data.series.filter((series: any) => series.refId === "traces_service_graph_request_failed_total").forEach((serie: any) => {
-                // if serie is undefined return
-                if (serie === undefined) {
-                    return;
-                }
-
-                const edgesLength = serie.fields.length;
-                for (let i = 1; i < edgesLength; i++) {
-                    // use Edge class to create an edge
-                    let edge: Edge;
-                    edge = Edge.create(serie.fields[i]);
-                    edge.id = 'service-' + edge.source + '-' + edge.target;
-                    edge.type = 'service';
-                    edge.failed_weight = edge.weight;
-                    edge.weight = 0;//this one is failed
-
-                    // if edge is undefined create it
-                    if (this.cy.getElementById(edge.id).length === 0) {
-                        console.log("failed edge=", edge)
-                        this.addServiceEdge(edge);
-                        // also add a failed edge
-
-
-                    } else {
-                        // if edge exists update the weight and label
-                        this.cy.getElementById(edge.id).data('failed_weight', edge.failed_weight);
-                        this.cy.getElementById(edge.id).data('label', edge.getLabel());
-
-                    }
-
-                }
+            // data.series.filter((series: any) => series.refId === "traces_service_graph_request_failed_total").forEach((serie: any) => {
+            //     // if serie is undefined return
+            //     if (serie === undefined) {
+            //         return;
+            //     }
+            //
+            //     const edgesLength = serie.fields.length;
+            //     for (let i = 1; i < edgesLength; i++) {
+            //         // use Edge class to create an edge
+            //         let edge: Edge;
+            //         edge = Edge.create(serie.fields[i]);
+            //         edge.id = 'service-' + edge.source + '-' + edge.target;
+            //         edge.type = 'service';
+            //         edge.failed_weight = edge.weight;
+            //         edge.weight = 0;//this one is failed
+            //
+            //         // if edge is undefined create it
+            //         if (this.cy.getElementById(edge.id).length === 0) {
+            //             console.log("failed edge=", edge)
+            //             this.addServiceEdge(edge);
+            //             // also add a failed edge
+            //
+            //
+            //         } else {
+            //             // if edge exists update the weight and label
+            //             this.cy.getElementById(edge.id).data('failed_weight', edge.failed_weight);
+            //             this.cy.getElementById(edge.id).data('label', edge.getLabel());
+            //
+            //         }
+            //
+            //     }
+        // });
                 // TODO: query is instant for the moment, needs to be average on selected time range
                 // TODO: traces_service_graph_request_failed_total is not available yet
 
 
-            });
+
         });
     }
 
-    private addServiceEdge(edge: Edge) {
-        this.cy.add({
-            data: {
-                id: edge.id,
-                label: edge.label,
-                edgeType: edge.type,
-                source: edge.source + "-out",
-                target: edge.target + "-in",
-                weight: edge.weight,
-                failed_weight: edge.failed_weight,
-            }
 
-        }).addClass('service-edge');
-        // place_left2right(edge.source + "-out",  edge.target + "-in");// left right
-
-
-
-    }
 
 
     private setOperationNodes() {

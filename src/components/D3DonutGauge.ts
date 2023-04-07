@@ -3,7 +3,7 @@ import {colors} from "./colors";
 
 export function createSVGDonutGaugeDataURL(service, nodeSize) {
     const successCount = service.weight;
-    const errorCount = service.weight / 2;
+    const errorCount = service.weight / 3;
     const total = successCount + errorCount;
 
     const size = nodeSize;

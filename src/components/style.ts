@@ -11,7 +11,6 @@ export const cyStyle = [
 
     service_compound_nodes(),
     service_nodes(),
-    service_node_attached_label_edges(),
     service_node_attached_label_tippy(),
     service2service_edges(),// SERVICE_HIGHWAY
     service2hubs_edges(),
@@ -106,7 +105,7 @@ function default_for_nodes() {
             },
             "border-opacity": 0.5,
             "width": function (ele) {
-                return nodeSize(ele);
+                return nodeSize(ele) ;
             },
             "height": function (ele) {
                 return nodeSize(ele);
@@ -117,28 +116,7 @@ function default_for_nodes() {
     };
 }
 
-function service_node_attached_label_edges() {
-    return {
-        selector: '.label-edge',
-        style: {
-            "curve-style": "straight",//options: segments, bezier, unbundled-bezier, segments, haystack straight - the default curve
-            "segment-distances": "-20 20 -20",
-            "segment-weights": "0.75",
-            "edge-distances ": "node-position",
-            "width": function (ele) {
-                // find target node edge connected to,
-                return edgeWidth(ele) / 6;
-            },
-            // no arrow
-            "target-arrow-shape": "none",
-            "mid-target-arrow-shape": "none",
-            "line-color": function (ele) {
-                return colorService(ele);
-            },
 
-        }
-    };
-}
 
 function service_node_attached_label_tippy() {
     return { // node type label rectangle with invisible border and invisible/transparent background
@@ -366,13 +344,42 @@ function default_for_edges() {
     };
 }
 
+function calculateOctilinearPath(edge) {
+    const source = edge.source().position();
+    const target = edge.target().position();
+
+    // Calculate the horizontal and vertical distances between the source and target nodes
+    const deltaX = target.x - source.x;
+    const deltaY = target.y - source.y;
+
+    // Calculate the intermediate point coordinates for the octilinear path
+    const intermediateX = source.x + deltaX / 2;
+    const intermediateY = source.y + deltaY / 2;
+
+    // Return the segment distances and weights
+    const segmentDistances = `${Math.abs(deltaX / 2)} ${Math.abs(deltaY / 2)}`;
+    const segmentWeights = `0.5 0.5`;
+
+    return { segmentDistances, segmentWeights };
+}
 function service2service_edges() {
     return {// service to service
-        selector: 'edge[edgeType = "service"]',
+        selector: '.service-edge',
         style: {
-            "line-color": colors['SERVICE_HIGHWAY'],
-            "opacity": 0.6,
-            "curve-style": "straight",//options: segments, bezier, unbundled-bezier, segments, haystack straight - the default curve
+            "line-color": function (ele) {
+                return colorService(ele)
+            },
+            // "line-color": colors['SERVICE_HIGHWAY'],
+            "opacity": 0.4,
+            'curve-style': (ele) => {
+                const sourceNode = ele.source();
+                const outDegree = sourceNode.degree(false);
+                if (outDegree > 1) {
+                    return 'bezier';
+                }
+                return 'straight';
+            },
+
             "line-cap": "square",// options: butt, round, square
         }
     };
@@ -578,7 +585,7 @@ function fontSize(size) {
 
 export function scaledSize(weight: number) {
     const baseSize = 60;
-    const scaleExponent = 2;
+    const scaleExponent = 3;
     // Create a custom logarithmic scale function
     const logScale = (value, minValue, maxValue, minResult, maxResult) => {
         const logMinValue = Math.log(minValue);
@@ -610,7 +617,7 @@ export const nodeSize = function (ele) {
 export const edgeWidth = function (ele) {
     let calculatedWeight = 0.1;
     const baseWidth = 40;
-    const scaleExponent = 2;
+    const scaleExponent = 1;
 
     if (ele.source().data("weight") && ele.target().data("weight")) {
         let sourceWeight = ele.source().data("weight");

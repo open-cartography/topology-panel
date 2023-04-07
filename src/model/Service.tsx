@@ -1,8 +1,7 @@
 import {round2} from "../components/TopologyPanel";
 import {DataFrame} from "@grafana/data";
-import { create_donut_gauge} from "../components/donut";
 import {colors} from "../components/colors";
-import {createSVGDonutGauge, createSVGDonutGaugeDataURL, createSVGDonutGaugeDataURL2} from "../components/D3DonutGauge";
+import { createSVGDonutGaugeDataURL} from "../components/D3DonutGauge";
 import {scaledSize} from "../components/style";
 
 function direction(span_kind: any) {
@@ -23,11 +22,6 @@ export class Service {
     data_series: DataFrame[];
     cy: any;
 
-    // constructor(serie: any) {
-    //     this.name = serie.fields[1].labels.service_name;
-    //     this.id = this.name;
-    //     this.weight = round2(serie.fields[1].values.get(0));
-    // }
     constructor(service_name: any, weight: any) {
         this.name = service_name;
         this.id = service_name;

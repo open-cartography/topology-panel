@@ -187,5 +187,8 @@ export function colorService(ele) {
     if (colors[ele.data('label')]) {
         return colors[ele.data('label')];
     }
+    if (colors[ele.data('source')]) {
+        return colors[ele.data('source')];
+    }
     return "gray";
 }
