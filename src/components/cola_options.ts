@@ -20,7 +20,7 @@ export let colaOptions = {
     avoidOverlap: true, // if true, prevents overlap of node bounding boxes
     handleDisconnected: false, // if true, avoids disconnected components from overlapping
     convergenceThreshold: 0.01, // when the alpha value (system energy) falls below this value, the layout stops
-    nodeSpacing: 1, // extra spacing around nodes
+    nodeSpacing: 10, // extra spacing around nodes
     flow: {axis: 'x', minSeparation: 200}, // use DAG/tree flow layout if specified, e.g. { axis: 'y', minSeparation: 30 }
     alignment: undefined, // relative alignment constraints on nodes, e.g. {vertical: [[{node: node1, offset: 0}, {node: node2, offset: 5}]], horizontal: [[{node: node3}, {node: node4}], [{node: node5}, {node: node6}]]}
     gapInequalities: undefined, // list of inequality constraints for the gap between the nodes, e.g. [{"axis":"y", "left":node1, "right":node2, "gap":25}]
