@@ -31,7 +31,7 @@ export const colors = {
     // CARTO Qualitative Antique
     "productcatalogservice": "#855C75",
     "frontend": "#D9AF6B",
-    "checkoutservice": "#D9AF6B",
+    "featureflagservice": "#D9AF6B",
     "frontend-proxy": "#AF6458",
     "paymentservice": "#736F4C",
     "loadgenerator": "#526A83",
@@ -39,7 +39,7 @@ export const colors = {
     "cartservice": "#68855C",
     "shippingservice": "#9C9C5E",
     "currencyservice": "#9C9C5E",
-    "featureflagservice": "#A06177",
+    "checkoutservice": "#A06177",
     "adservice": "#8C785D",
     "frontend-web": "#467378",
     "emailservice": "#467378",
@@ -71,6 +71,8 @@ export const colors = {
     "gray": "#B3B3B3",
     //vey light gray
     "46": "#E6E6E6",
+
+
 
 
     // from https://github.com/karthik/wesanderson

@@ -584,8 +584,8 @@ function fontSize(size) {
 }
 
 export function scaledSize(weight: number) {
-    const baseSize = 60;
-    const scaleExponent = 3;
+    const baseSize = 20;
+    const scaleExponent = 4;
     // Create a custom logarithmic scale function
     const logScale = (value, minValue, maxValue, minResult, maxResult) => {
         const logMinValue = Math.log(minValue);
@@ -616,8 +616,8 @@ export const nodeSize = function (ele) {
 
 export const edgeWidth = function (ele) {
     let calculatedWeight = 0.1;
-    const baseWidth = 40;
-    const scaleExponent = 1;
+    const baseWidth = 20;
+    const scaleExponent = 3;
 
     if (ele.source().data("weight") && ele.target().data("weight")) {
         let sourceWeight = ele.source().data("weight");
