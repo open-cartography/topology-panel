@@ -6,35 +6,29 @@ export const plugin = new PanelPlugin<SimpleOptions>(TopologyPanel).setPanelOpti
   return builder
     .addTextInput({
       path: 'text',
-      name: 'Simple text option',
-      description: 'Description of panel option',
-      defaultValue: 'Default value of text input option',
-    })
-    .addBooleanSwitch({
-      path: 'showSeriesCount',
-      name: 'Show series counter',
-      defaultValue: false,
+      name: 'Graph option',
+      description: 'Service Topology, Generic Graph Query, Pipelines',
+      defaultValue: 'Service Topology',
     })
     .addRadio({
-      path: 'seriesCountSize',
-      defaultValue: 'sm',
-      name: 'Series counter size',
+      path: 'graphType',
+      defaultValue: 'service_topology',
+      name: 'Graph Type',
       settings: {
         options: [
           {
-            value: 'sm',
-            label: 'Small',
+            value: 'service_topology',
+            label: 'service_topology',
           },
           {
-            value: 'md',
-            label: 'Medium',
+            value: 'pipelines',
+            label: 'pipelines',
           },
           {
-            value: 'lg',
-            label: 'Large',
+            value: 'neo4j',
+            label: 'neo4j',
           },
         ],
       },
-      showIf: (config) => config.showSeriesCount,
     });
 });
