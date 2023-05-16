@@ -52,6 +52,9 @@ interface PanelState {
     instance?: complexityManagement | undefined;
 }
 
+interface Props<SimpleOptions> extends PanelProps<SimpleOptions> {
+
+}
 
 export function round2(value) {
     return Math.round((value + Number.EPSILON) * 100) / 100
