@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import {colors} from "./colors";
+import { colors } from "./colors";
 
 export function createSVGDonutGaugeDataURL(service, nodeSize) {
     const successCount = service.weight;

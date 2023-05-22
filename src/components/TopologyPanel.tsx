@@ -1,5 +1,15 @@
-import React, {PureComponent} from 'react';
-import {PanelProps} from '@grafana/data';
+import React, { PureComponent, Component } from 'react';
+import { PanelProps } from '@grafana/data';
+import {
+    BusEvent,
+    BusEventBase,
+    BusEventWithPayload
+} from '@grafana/data';
+
+
+import { PanelContext, PanelContextRoot } from '@grafana/ui';
+
+import { PartialObserver, Unsubscribable } from 'rxjs';
 import './style.css';
 import cytoscape from "cytoscape";
 import layoutUtilities from 'cytoscape-layout-utilities';
@@ -9,25 +19,25 @@ import cola from 'cytoscape-cola';
 import 'tippy.js/dist/tippy.css';
 import popper from 'cytoscape-popper';
 
-import {cyStyle} from "./style";
+import { cyStyle } from "./style";
 
-import { hideAll } from 'tippy.js';
 // @ts-ignore
 import complexityManagement from "cytoscape-complexity-management";
-import {Tippies} from "./Tippies";
-import {getTraceOnNode} from "./Trace";
+import { Tippies } from "./Tippies";
+import { getTraceOnNode } from "./Trace";
 import cxtmenu from 'cytoscape-cxtmenu';
 import cxtmenu_defaults from "./cxtmenu";
 import automove from 'cytoscape-automove';
 import dagre from 'cytoscape-dagre';
 import klay from 'cytoscape-klay';
-import {Edge} from 'model/Edge';
-import {Service} from 'model/Service';
-import {Operation} from "../model/Operation";
-import {colaOptions} from "./cola_options";
-import {klay_options} from "./klay_options";
-import {layoutOptions} from "./layout";
+import { Edge } from 'model/Edge';
+import { Service } from 'model/Service';
+import { Operation } from "../model/Operation";
+import { colaOptions } from "./cola_options";
+
+import { layoutOptions } from "./layout";
 import edgeEditing from 'cytoscape-edge-editing';
+import { Button } from '@grafana/ui';
 
 
 cytoscape.use(edgeEditing);
@@ -50,20 +60,26 @@ interface PanelState {
     cyVisible?: cytoscape.Core | undefined;
     cyInvisible?: cytoscape.Core | undefined;
     instance?: complexityManagement | undefined;
+
+
+
 }
 
-interface Props<SimpleOptions> extends PanelProps<SimpleOptions> {
 
-}
 
 export function round2(value) {
     return Math.round((value + Number.EPSILON) * 100) / 100
 }
 
-
+class MyPanelEvents extends BusEventWithPayload<number> {
+    static type = '.*';
+}
+class MyPanelEvents2 extends BusEventBase {
+    static type = '.*';
+}
 
 // https://js.cytoscape.org/
-export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
+export class TopologyPanel extends Component<PanelProps, PanelState> {
     ref: any;
     cy: any | undefined;
     cyVisible: cytoscape.Core | undefined;
@@ -71,14 +87,60 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
     instance: any | undefined;
     tippies: any | undefined;
     cxtmenu: any;
-    level: number|undefined;
+    level: number | undefined;
+    declare context: React.ContextType<typeof PanelContextRoot>;
+    static contextType = PanelContextRoot;
+    panelContext: PanelContext | undefined = undefined;
+
+
+    eventObserver: PartialObserver<any> = {
+        next: () => {
+            console.log("event=");
+        },
+
+
+    };
 
 
     constructor(props: PanelProps) {
         super(props);
+
         this.ref = React.createRef();
+        console.log("--constructor--");
+        console.log("PanelProps=", this.props);
+
 
     }
+
+
+
+    saveLayout = () => {
+        const json = this.cy.json();
+        const elements = json.elements;
+        if (!elements.nodes) {
+            return;
+        }
+        this.props.options.graphAsJson = JSON.stringify(json, undefined, 4);
+
+        fetch('/grafana/api/dashboards/db/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                dashboard: getDashboardObject(),
+                overwrite: true
+            })
+        })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+
+
+
+    };
 
     render() {
         if (this.cy !== undefined) {
@@ -97,10 +159,27 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
                     <div id="cyVisible"></div>
                     <div id="cyInvisible"></div>
                 </div>
+                <div className="cy-extension-container">
+                    <div id="cyVisible"></div>
+                    <div id="cyInvisible"></div>
+
+                </div>
+
+
+                <Button variant="secondary" onClick={this.saveLayout}>
+                    Save Layout
+                </Button>
             </div>
         );
     }
 
+    shouldComponentUpdate(nextProps: Readonly<PanelProps<any>>, nextState: Readonly<PanelState>, nextContext: any): boolean {
+        console.log("--shouldComponentUpdate--");
+        console.log("nextProps=", nextProps);
+        console.log("nextState=", nextState);
+        console.log("nextContext=", nextContext);
+        return true;
+    }
 
     private initListeners() {
         this.cy.on('click', 'node', (event: any) => {
@@ -143,7 +222,7 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
 
     componentDidMount() {
 
-        this.level= 0;
+        this.level = 0;
         this.cyVisible = cytoscape({
             container: document.getElementById('cyVisible'),
         } as any);
@@ -174,7 +253,7 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
             this.init_graph();
 
         });
-            this.cy.layout({...layoutOptions}).run();
+        this.cy.layout({ ...layoutOptions }).run();
 
         this.tippies = new Tippies(this);
 
@@ -183,20 +262,36 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
 
         this.cxtmenu = this.cy.cxtmenu(cxtmenu_defaults);
 
+        this.props.eventBus.getStream(MyPanelEvents).subscribe((data) => {
+            //Now you can access the current row index (data.payload.rowIndex)
+            console.log(data);
+        });
+        this.props.eventBus.getStream(MyPanelEvents2).subscribe((data) => {
+            console.log("MyPanelEvents2=", data);
+        });
+
+        this.panelContext = this.context;
+
+    }
+
+    private destroyTippies = () => {
+        console.log("destroyTippies");
     }
 
 
+
+
     private init_graph() {
-        console.log("init_graph level ",this.level);
-        if (this.level===0) {
+        console.log("init_graph level ", this.level);
+        if (this.level === 0) {
             this.add_service_nodes();
             this.level = 0.1;
             this.add_service2service_edges();
             console.log("init_graph level 1");
             this.level = 1;
         }
-        if (this.level>2) {
-        // read_file_constraints();
+        if (this.level > 2) {
+            // read_file_constraints();
             this.setOperationNodes();
         }
 
@@ -206,11 +301,15 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
 
 
     private updateGraph() {
-        console.log("updateGraph");
+        console.log("updateGraph level -->", this.level);
+        // read options from grafana panel
+        console.log("props=", this);
+
+
         this.cy.resize();
         this.cy.fit();
         let layout = this.cy.layout(
-                 {...colaOptions}
+            { ...colaOptions }
         );
         layout.run();
         // layoutOptions.randomize = false;
@@ -227,31 +326,31 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
 
             const serviceName = s.fields[1].labels.service_name;
             let sum = s.fields[1].values.toArray().reduce((a, b) => a + b, 0);
-            sum=round2(sum);
+            sum = round2(sum);
             if (serviceNameTotals[serviceName]) {
                 serviceNameTotals[serviceName] += sum;
             } else {
                 serviceNameTotals[serviceName] = sum;
             }
-            serviceNameTotals[serviceName]= round2(serviceNameTotals[serviceName]);
+            serviceNameTotals[serviceName] = round2(serviceNameTotals[serviceName]);
         });
 
         return serviceNameTotals;
     };
     private add_service_nodes() {
-        const {data} = this.props;
+        const { data } = this.props;
 
         // TODO: get rid of one of the two series: service_calls_total to be replaced by spanmetrics_calls_total
         let spanmetrics_calls_total = data.series.filter((services: any) => services.refId === "spanmetrics_calls_total");
         let serviceNameTotals = this.getServiceNameTotals(spanmetrics_calls_total);
-        console.log("console.log(serviceNameTotals)",serviceNameTotals);
+        console.log("console.log(serviceNameTotals)", serviceNameTotals);
         // iterate over serviceNameTotals
         for (let serviceName in serviceNameTotals) {
             // log service name and total
-            console.log("serviceName",serviceName,serviceNameTotals[serviceName]);
+            console.log("serviceName", serviceName, serviceNameTotals[serviceName]);
             // filter for service name the service_calls_total into a serie(s) and set_series in Service object
             let service: Service;
-            service = new Service(serviceName,serviceNameTotals[serviceName]);
+            service = new Service(serviceName, serviceNameTotals[serviceName]);
             service.set_series(data.series);
             service.cy = this.cy;
             service.add_service_compound();
@@ -282,7 +381,7 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
 
 
     private add_service2service_edges() {
-        const {data} = this.props;
+        const { data } = this.props;
         console.log("add_service2service_edges");
         // get series with refId ServiceGraphEdges
         data.series.filter((series: any) => series.refId === "service_graph_request_total").forEach((serie: any) => {
@@ -296,7 +395,7 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
             for (let i = 1; i < edgesLength; i++) {
                 // use Edge class to create an edge
                 let edge: Edge;
-                edge = Edge.create(serie.fields[i],this);
+                edge = Edge.create(serie.fields[i], this);
                 edge.id = 'service-' + edge.source + '-' + edge.target;
                 edge.type = 'service';
                 edge.failed_weight = 0;
@@ -345,9 +444,9 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
             //         }
             //
             //     }
-        // });
-                // TODO: query is instant for the moment, needs to be average on selected time range
-                // TODO: traces_service_graph_request_failed_total is not available yet
+            // });
+            // TODO: query is instant for the moment, needs to be average on selected time range
+            // TODO: traces_service_graph_request_failed_total is not available yet
 
 
 
@@ -358,7 +457,7 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
 
 
     private setOperationNodes() {
-        const {data} = this.props;
+        const { data } = this.props;
         // TODO: A hash map to store the operation nodes would be better, parenting(compound) can be then used
         // for now sticking with hierarchical approach
         data.series.filter((queryResults: any) => queryResults.refId === "spanmetrics_calls_total").forEach((serie: any) => {
@@ -492,6 +591,22 @@ export class TopologyPanel extends PureComponent<PanelProps, PanelState> {
 
 
 
+}
+
+
+
+function getDashboardObject() {
+    let url = window.location.pathname;
+    let parts = url.split('/');
+    let uid = parts[parts.indexOf('d') + 1];
+    var request = new XMLHttpRequest();
+    request.open('GET', `/grafana/api/dashboards/uid/${uid}`, false); // `false` makes the request synchronous
+    request.send(null);
+
+    if (request.status === 200) {
+        return JSON.parse(request.responseText).dashboard;
+    }
+    throw new Error(`HTTP error! status: ${request.status}`);
 }
 
 

@@ -1,8 +1,8 @@
-import {round2} from "../components/TopologyPanel";
-import {DataFrame} from "@grafana/data";
-import {colors} from "../components/colors";
-import { createSVGDonutGaugeDataURL} from "../components/D3DonutGauge";
-import {scaledSize} from "../components/style";
+import { round2 } from "../components/TopologyPanel";
+import { DataFrame } from "@grafana/data";
+import { colors } from "../components/colors";
+import { createSVGDonutGaugeDataURL } from "../components/D3DonutGauge";
+import { scaledSize } from "../components/style";
 
 function direction(span_kind: any) {
     if (span_kind === "SPAN_KIND_SERVER") {
@@ -116,7 +116,7 @@ export class Service {
     add_donut() {
         //TODO: extract error sum and construct donut accordingly
 
-        const imageUrl = createSVGDonutGaugeDataURL(this,scaledSize(this.weight));
+        const imageUrl = createSVGDonutGaugeDataURL(this, scaledSize(this.weight));
         const backgroundImage = `url(${imageUrl})`;
         const node = this.cy.getElementById(this.id);
         node.style('background-image', backgroundImage);
@@ -153,6 +153,23 @@ export class Service {
         node.on('position', update);
 
         this.cy.on('pan zoom resize', update);
+
+        node.on('remove', () => {
+            popper.destroy();
+            node.off('position', update);
+            this.cy.off('pan zoom resize', update);
+        });
+
+        // Grafana dashboard events that could result in panel destruction
+        const events = ['panel-initialized', 'panel-teardown', 'panel-size-changed', 'template-variable-value-updated'];
+
+        events.forEach(event => {
+            this.cy.on(event, () => {
+                popper.destroy();
+                node.off('position', update);
+                this.cy.off('pan zoom resize', update);
+            });
+        });
 
         // TODO: tippies not destroyed on panel edit, full refresh or dashboard change and sizes calculated according to node size best in style.ts or style.css
 

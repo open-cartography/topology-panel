@@ -1,4 +1,4 @@
-import {colorHub, colors, colorService, colorStatus} from "./colors";
+import { colorHub, colors, colorService, colorStatus } from "./colors";
 
 
 export const cyStyle = [
@@ -32,7 +32,7 @@ export const cyStyle = [
 
 ];
 function default_for_compound_nodes() {
-    return  {
+    return {
         selector: ':compound',
         style: {
             "background-color": function (ele) {
@@ -94,7 +94,7 @@ function default_for_nodes() {
             "background-color": "white",
             "border-color": "black",
             "font-size": function (ele) {
-                return fontSize(nodeSize(ele))*0.7;
+                return fontSize(nodeSize(ele)) * 0.7;
             },
             "color": "black", // default color
             "background-opacity": 0.8,
@@ -105,7 +105,7 @@ function default_for_nodes() {
             },
             "border-opacity": 0.5,
             "width": function (ele) {
-                return nodeSize(ele) ;
+                return nodeSize(ele);
             },
             "height": function (ele) {
                 return nodeSize(ele);

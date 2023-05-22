@@ -1,9 +1,9 @@
 import neo4j from 'neo4j-driver';
 
 // Replace with your Neo4j connection details
-const NEO4J_URL = 'bolt://localhost:7687';
+const NEO4J_URL = 'bolt://neo4j:7687';
 const NEO4J_USER = 'neo4j';
-const NEO4J_PASSWORD = 'your_password';
+const NEO4J_PASSWORD = 'neo4jneo4j';
 
 const driver = neo4j.driver(NEO4J_URL, neo4j.auth.basic(NEO4J_USER, NEO4J_PASSWORD));
 

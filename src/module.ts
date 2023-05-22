@@ -1,14 +1,20 @@
 import { PanelPlugin } from '@grafana/data';
-import { SimpleOptions } from './types';
+import { PanelOptions } from './types';
 import { TopologyPanel } from './components/TopologyPanel';
 
-export const plugin = new PanelPlugin<SimpleOptions>(TopologyPanel).setPanelOptions((builder) => {
+export const plugin = new PanelPlugin<PanelOptions>(TopologyPanel).setPanelOptions((builder) => {
   return builder
     .addTextInput({
       path: 'text',
       name: 'Graph option',
       description: 'Service Topology, Generic Graph Query, Pipelines',
       defaultValue: 'Service Topology',
+    })
+    .addTextInput({
+      path: 'graphAsJson',
+      name: 'Graph As Json',
+      description: 'Offline presets for graph',
+      defaultValue: '',
     })
     .addRadio({
       path: 'graphType',
